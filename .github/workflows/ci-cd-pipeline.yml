@@ -69,7 +69,7 @@ jobs:
                 cluster: kind
                 user: kind-wisecow-cluster
               name: kind-wisecow-context
-            current-context: kind-admin-context
+            current-context: kind-wisecow-context  # Corrected to match the context name
             users:
             - name: kind-wisecow-cluster
               user:
