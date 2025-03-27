@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wisecow
+spec:
+  replicas: 1  # You can increase this to scale your app
+  selector:
+    matchLabels:
+      app: wisecow
+  template:
+    metadata:
+      labels:
+        app: wisecow
+    spec:
+      containers:
+        - name: wisecow
+          image: <your-docker-repository>/wisecow:latest  # Replace with your Docker image name and tag
+          ports:
+            - containerPort: 4499  # Exposing port 4499 for the application
+          env:
+            - name: PATH
+              value: "/usr/games:$PATH"  # Ensure PATH includes /usr/games for fortune and cowsay
