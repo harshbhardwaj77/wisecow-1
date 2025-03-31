@@ -11,6 +11,7 @@ RUN apt-get update
 
 # Install necessary packages
 RUN apt-get install -y \
+    bash \
     netcat-openbsd \
     fortune-mod \
     cowsay \
