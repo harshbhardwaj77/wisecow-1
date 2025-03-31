@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: wisecow
 spec:
-  replicas: 1  # You can increase this to scale your app
+  replicas: 1
   selector:
     matchLabels:
       app: wisecow
@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: wisecow
-          image: <your-docker-repository>/wisecow:latest  # Replace with your Docker image name and tag
+          image: harshbhardwaj7/wisecow:latest  # ✅ Replace with your actual Docker Hub image
           ports:
-            - containerPort: 4499  # Exposing port 4499 for the application
+            - containerPort: 4499
           env:
             - name: PATH
-              value: "/usr/games:$PATH"  # Ensure PATH includes /usr/games for fortune and cowsay
+              value: "/usr/games:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
