@@ -41,15 +41,24 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/wisecow:latest
 
   deploy:
-    runs-on: self-hosted  # Run on your local machine with access to kind
+    runs-on: self-hosted  # Runs on your local machine where kind is running
     needs: build
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Deploy to kind cluster
+      - name: Apply Kubernetes Manifests
         run: |
-          kubectl config use-context kind
+          kubectl apply -f kubernetes/manifests/deployment.yaml
+          kubectl apply -f kubernetes/manifests/service.yaml
+
+      - name: Update Deployment Image
+        run: |
           kubectl set image deployment/wisecow wisecow=${{ secrets.DOCKER_USERNAME }}/wisecow:latest
           kubectl rollout restart deployment/wisecow
-          kubectl get pods
+
+      - name: Wait for Deployment to Stabilize
+        run: kubectl rollout status deployment/wisecow
+
+      - name: Get Pod Status
+        run: kubectl get pods
