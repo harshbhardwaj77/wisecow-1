@@ -3,40 +3,35 @@ name: Build and Deploy Wisecow Application
 on:
   push:
     branches:
-      - main  # Trigger the workflow on push to the main branch
+      - main
   pull_request:
     branches:
-      - main  # Trigger on pull requests to the main branch
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Set up Docker Buildx (for building images)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # Cache Docker layers to speed up builds
       - name: Cache Docker layers
-        uses: actions/cache@v3  # Updated to v3
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and Push Docker Image
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v3
         with:
@@ -46,42 +41,15 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/wisecow:latest
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: build  # This job depends on the success of the 'build' job
+    runs-on: self-hosted  # Run on your local machine with access to kind
+    needs: build
     steps:
-      # Checkout the repository again
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Set up kubectl to interact with Kind Kubernetes
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v1
-        with:
-          kubeconfig: |
-            apiVersion: v1
-            clusters:
-            - cluster:
-                server: ${{ secrets.K8S_HOST }}
-                certificate-authority-data: ${{ secrets.K8S_CERTIFICATE }}
-              name: kind
-            contexts:
-            - context:
-                cluster: kind
-                user: kind-wisecow-cluster
-              name: kind-wisecow-context
-            current-context: kind-wisecow-context  # Corrected to match the context name
-            users:
-            - name: kind-wisecow-cluster
-              user:
-                client-certificate-data: ${{ secrets.K8S_CERTIFICATE }}
-                client-key-data: ${{ secrets.K8S_PRIVATE_KEY }}
-
-      # Deploy the updated Docker image to Kubernetes
-      - name: Update Kubernetes Deployment
+      - name: Deploy to kind cluster
         run: |
+          kubectl config use-context kind
           kubectl set image deployment/wisecow wisecow=${{ secrets.DOCKER_USERNAME }}/wisecow:latest
           kubectl rollout restart deployment/wisecow
-
-      # Optional: Check the deployment status
-      - name: Check Deployment Status
-        run: kubectl get pods
+          kubectl get pods
