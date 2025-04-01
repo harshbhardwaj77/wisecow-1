@@ -5,9 +5,10 @@ metadata:
 spec:
   selector:
     app: wisecow
+  type: NodePort
   ports:
-    - protocol: TCP
-      port: 80  # Port exposed by the service inside the cluster
-      targetPort: 4499  # The port inside the container
-      nodePort: 30080  # The port on the node (host machine)
-  type: NodePort  # Use NodePort for local access
+    - name: http
+      protocol: TCP
+      port: 4499            # Service port inside the cluster
+      targetPort: 4499      # Matches containerPort in your deployment
+      nodePort: 30080       # Port exposed on localhost
